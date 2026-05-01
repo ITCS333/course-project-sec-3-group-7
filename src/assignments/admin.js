@@ -287,11 +287,18 @@ async function loadAndInitialize() {
    toggleFormBtn.addEventListener('click', () => {
     formSection.classList.toggle('hidden');
 
+    
+if (toggleFormBtn && formSection) {
+  toggleFormBtn.addEventListener('click', () => {
+    formSection.classList.toggle('hidden');
+
     if (formSection.classList.contains('hidden')) {
       toggleFormBtn.textContent = "➕ Add New Assignment";
     } else {
       toggleFormBtn.textContent = "Close Form";
     }
+  });
+}
   });
 }
 
