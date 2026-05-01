@@ -93,18 +93,20 @@ function renderAssignmentDetails(assignment) {
   assignmentDueDate.textContent = "Due: " + assignment.due_date;
   assignmentDescription.textContent = assignment.description;
 
-  assignmentFilesList.innerHTML = "";
+ assignmentFilesList.innerHTML = "";
 
-  assignment.files.forEach(function (url) {
-    const li = document.createElement('li');
-    const link = document.createElement('a');
+const files = Array.isArray(assignment.files) ? assignment.files : [];
 
-    link.href = url;
-    link.textContent = url;
+files.forEach(function (url) {
+  const li = document.createElement('li');
+  const link = document.createElement('a');
 
-    li.appendChild(link);
-    assignmentFilesList.appendChild(li);
-  });
+  link.href = url;
+  link.textContent = url;
+
+  li.appendChild(link);
+  assignmentFilesList.appendChild(li);
+});
 }
 
 /**
