@@ -274,7 +274,7 @@ if (button.classList.contains('edit-btn')) {
  */
 async function loadAndInitialize() {
   // ... your implementation here ...
-    const res = await fetch('./api/index.php');
+  const res = await fetch('./api/index.php');
   const result = await res.json();
 
   if (result.success) {
@@ -284,22 +284,18 @@ async function loadAndInitialize() {
 
   form.addEventListener('submit', handleAddAssignment);
   tbody.addEventListener('click', handleTableClick);
-   toggleFormBtn.addEventListener('click', () => {
-    formSection.classList.toggle('hidden');
 
-    
-if (toggleFormBtn && formSection) {
-  toggleFormBtn.addEventListener('click', () => {
-    formSection.classList.toggle('hidden');
+  if (toggleFormBtn && formSection) {
+    toggleFormBtn.addEventListener('click', () => {
+      formSection.classList.toggle('hidden');
 
-    if (formSection.classList.contains('hidden')) {
-      toggleFormBtn.textContent = "➕ Add New Assignment";
-    } else {
-      toggleFormBtn.textContent = "Close Form";
-    }
-  });
-}
-  });
+      if (formSection.classList.contains('hidden')) {
+        toggleFormBtn.textContent = "➕ Add New Assignment";
+      } else {
+        toggleFormBtn.textContent = "Close Form";
+      }
+    });
+  }
 }
 
 // --- Initial Page Load ---
