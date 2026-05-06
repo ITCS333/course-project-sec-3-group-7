@@ -22,7 +22,7 @@ The website covers five functional areas, each assigned to one team member.
 | Task | Description | Student ID | GitHub Username |
 |------|-------------|------------|-----------------|
 | 1 | Home Page, Authentication & User Management | | |
-| 2 | Course Resources | | |
+| 2 | Course Resources | 202309376 | anoodhamri-edu |
 | 3 | Weekly Breakdown | | |
 | 4 | Assignments | 202006886 | Alyaa-Ahmed1 |
 | 5 | Discussion Board | | |
