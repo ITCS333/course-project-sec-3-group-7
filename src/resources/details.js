@@ -23,6 +23,12 @@ let currentComments = [];
 
 // --- Element Selections ---
 // TODO: Select all the elements you added IDs for in step 2.
+const resourceTitle = document.getElementById('resource-title');
+const resourceDescription = document.getElementById('resource-description');
+const resourceLink = document.getElementById('resource-link');
+const commentList = document.getElementById('comment-list');
+const commentForm = document.getElementById('comment-form');
+const newCommentTextarea = document.getElementById('new-comment');
 
 // --- Functions ---
 
@@ -35,6 +41,9 @@ let currentComments = [];
  */
 function getResourceIdFromURL() {
   // ... your implementation here ...
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('id');
+
 }
 
 /**
@@ -50,6 +59,9 @@ function getResourceIdFromURL() {
  */
 function renderResourceDetails(resource) {
   // ... your implementation here ...
+  resourceTitle.textContent = resource.title;
+  resourceDescription.textContent = resource.description;
+  resourceLink.href = resource.link;  
 }
 
 /**
@@ -62,6 +74,18 @@ function renderResourceDetails(resource) {
  */
 function createCommentArticle(comment) {
   // ... your implementation here ...
+  const article = document.createElement('article');
+
+  const p = document.createElement('p');
+  p.textContent = comment.text;
+
+  const footer = document.createElement('footer');
+  footer.textContent = `Posted by: ${comment.author}`;
+
+  article.appendChild(p);
+  article.appendChild(footer);
+
+  return article;
 }
 
 /**
@@ -71,9 +95,16 @@ function createCommentArticle(comment) {
  * 2. Loop through the global `currentComments` array.
  * 3. For each comment, call `createCommentArticle()` and
  *    append the returned <article> to the comment list container.
+ * 
  */
 function renderComments() {
   // ... your implementation here ...
+  commentList.innerHTML = '';
+
+  currentComments.forEach(comment => {
+    const article = createCommentArticle(comment);
+    commentList.appendChild(article);
+  }); 
 }
 
 /**
@@ -100,6 +131,30 @@ function renderComments() {
  */
 function handleAddComment(event) {
   // ... your implementation here ...
+  event.preventDefault();
+
+  const commentText = newCommentTextarea.value.trim();
+  if (commentText === '') {
+    return;
+  }
+
+  fetch('./api/index.php?action=comment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      resource_id: currentResourceId,
+      author: 'Student',
+      text: commentText
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      currentComments.push(data.data);
+      renderComments();
+      newCommentTextarea.value = '';
+    }
+  });
 }
 
 /**
@@ -126,7 +181,39 @@ function handleAddComment(event) {
  */
 async function initializePage() {
   // ... your implementation here ...
+  currentResourceId = getResourceIdFromURL();
+
+  if (!currentResourceId) {
+    resourceTitle.textContent = "Resource not found.";
+    return;
+  }
+
+  try {
+    const [resourceResponse, commentsResponse] = await Promise.all([
+      fetch(`./api/index.php?id=${currentResourceId}`),
+      fetch(`./api/index.php?resource_id=${currentResourceId}&action=comments`)
+    ]);
+
+    const resourceResult = await resourceResponse.json();
+    const commentsResult = await commentsResponse.json();
+
+    if (resourceResult.success) {
+      renderResourceDetails(resourceResult.data);
+    } else {
+      resourceTitle.textContent = "Resource not found.";
+      return;
+    }
+
+    currentComments = commentsResult.success ? commentsResult.data : [];
+    renderComments();
+
+    commentForm.addEventListener('submit', handleAddComment);
+  } catch (error) {
+    console.error('Error loading resource details:', error);
+    resourceTitle.textContent = "An error occurred while loading the resource.";
+  }
 }
 
 // --- Initial Page Load ---
 initializePage();
+
