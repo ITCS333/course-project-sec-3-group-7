@@ -6,15 +6,6 @@
 let currentWeekId   = null;
 let currentComments = [];
 
-// --- Element Selections ---
-const weekTitle       = document.getElementById("week-title");
-const weekStartDate   = document.getElementById("week-start-date");
-const weekDescription = document.getElementById("week-description");
-const weekLinksList   = document.getElementById("week-links-list");
-const commentList     = document.getElementById("comment-list");
-const commentForm     = document.getElementById("comment-form");
-const newCommentInput = document.getElementById("new-comment");
-
 // --- Functions ---
 
 function getWeekIdFromURL() {
@@ -23,10 +14,11 @@ function getWeekIdFromURL() {
 }
 
 function renderWeekDetails(week) {
-  weekTitle.textContent       = week.title;
-  weekStartDate.textContent   = "Starts on: " + week.start_date;
-  weekDescription.textContent = week.description;
+  document.getElementById("week-title").textContent       = week.title;
+  document.getElementById("week-start-date").textContent  = "Starts on: " + week.start_date;
+  document.getElementById("week-description").textContent = week.description;
 
+  const weekLinksList = document.getElementById("week-links-list");
   weekLinksList.innerHTML = "";
   (week.links || []).forEach((url) => {
     const li = document.createElement("li");
@@ -54,16 +46,17 @@ function createCommentArticle(comment) {
 }
 
 function renderComments() {
+  const commentList = document.getElementById("comment-list");
   commentList.innerHTML = "";
   currentComments.forEach((comment) => {
-    const article = createCommentArticle(comment);
-    commentList.appendChild(article);
+    commentList.appendChild(createCommentArticle(comment));
   });
 }
 
 async function handleAddComment(event) {
   event.preventDefault();
 
+  const newCommentInput = document.getElementById("new-comment");
   const commentText = newCommentInput.value.trim();
   if (!commentText) return;
 
@@ -93,7 +86,7 @@ async function initializePage() {
   currentWeekId = getWeekIdFromURL();
 
   if (!currentWeekId) {
-    weekTitle.textContent = "Week not found.";
+    document.getElementById("week-title").textContent = "Week not found.";
     return;
   }
 
@@ -113,13 +106,14 @@ async function initializePage() {
     if (weekResult.success && weekResult.data) {
       renderWeekDetails(weekResult.data);
       renderComments();
-      commentForm.addEventListener("submit", handleAddComment);
+      document.getElementById("comment-form")
+        .addEventListener("submit", handleAddComment);
     } else {
-      weekTitle.textContent = "Week not found.";
+      document.getElementById("week-title").textContent = "Week not found.";
     }
   } catch (error) {
     console.error("Error initializing page:", error);
-    weekTitle.textContent = "Week not found.";
+    document.getElementById("week-title").textContent = "Week not found.";
   }
 }
 
