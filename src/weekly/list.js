@@ -1,142 +1,63 @@
 /*
-  Requirement: Populate the weekly detail page and handle the discussion forum.
+  Requirement: Populate the "Weekly Course Breakdown" list page.
 */
 
-// --- Global Data Store ---
-let currentWeekId   = null;
-let currentComments = [];
-
 // --- Element Selections ---
-const weekTitle       = document.getElementById("week-title");
-const weekStartDate   = document.getElementById("week-start-date");
-const weekDescription = document.getElementById("week-description");
-const weekLinksList   = document.getElementById("week-links-list");
-const commentList     = document.getElementById("comment-list");
-const commentForm     = document.getElementById("comment-form");
-const newCommentInput = document.getElementById("new-comment");
+const weekListSection = document.getElementById("week-list-section");
 
 // --- Functions ---
 
-function getWeekIdFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("id");
-}
-
-function renderWeekDetails(week) {
-  weekTitle.textContent       = week.title;
-  weekStartDate.textContent   = "Starts on: " + week.start_date;
-  weekDescription.textContent = week.description;
-
-  weekLinksList.innerHTML = "";
-  (week.links || []).forEach((url) => {
-    const li = document.createElement("li");
-    const a  = document.createElement("a");
-    a.href        = url;
-    a.textContent = url;
-    li.appendChild(a);
-    weekLinksList.appendChild(li);
-  });
-}
-
-function createCommentArticle(comment) {
+function createWeekArticle(week) {
   const article = document.createElement("article");
 
-  const p = document.createElement("p");
-  p.textContent = comment.text;
+  const title = document.createElement("h2");
+  title.textContent = week.title;
 
-  const footer = document.createElement("footer");
-  footer.textContent = "Posted by: " + comment.author;
+  const startDate = document.createElement("p");
+  startDate.textContent = `Starts on: ${week.start_date}`;
 
-  article.appendChild(p);
-  article.appendChild(footer);
+  const description = document.createElement("p");
+  description.textContent = week.description;
+
+  const link = document.createElement("a");
+  link.href = `details.html?id=${week.id}`;
+  link.textContent = "View Details & Discussion";
+
+  article.appendChild(title);
+  article.appendChild(startDate);
+  article.appendChild(description);
+  article.appendChild(link);
 
   return article;
 }
 
-function renderComments() {
-  commentList.innerHTML = "";
-  currentComments.forEach((comment) => {
-    const article = createCommentArticle(comment);
-    commentList.appendChild(article);
-  });
-}
-
-async function handleAddComment(event) {
-  event.preventDefault();
-
-  const commentText = newCommentInput.value.trim();
-  if (!commentText) return;
-
+async function loadWeeks() {
   try {
-    const response = await fetch("./api/index.php?action=comment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        week_id: currentWeekId,
-        author:  "Student",
-        text:    commentText,
-      }),
-    });
+    const response = await fetch("./api/index.php");
     const result = await response.json();
 
-    if (result.success === true) {
-      currentComments.push(result.data);
-      renderComments();
-      newCommentInput.value = "";
-    }
-  } catch (error) {
-    console.error("Error posting comment:", error);
-  }
-}
+    weekListSection.innerHTML = "";
 
-async function initializePage() {
-  currentWeekId = getWeekIdFromURL();
-
-  if (!currentWeekId) {
-    weekTitle.textContent = "Week not found.";
-    return;
-  }
-
-  try {
-    const [weekResponse, commentsResponse] = await Promise.all([
-      fetch(`./api/index.php?id=${currentWeekId}`),
-      fetch(`./api/index.php?action=comments&week_id=${currentWeekId}`),
-    ]);
-
-    const weekResult     = await weekResponse.json();
-    const commentsResult = await commentsResponse.json();
-
-    currentComments = (commentsResult.success && Array.isArray(commentsResult.data))
-      ? commentsResult.data
-      : [];
-
-    if (weekResult.success && weekResult.data) {
-      renderWeekDetails(weekResult.data);
-      renderComments();
-      commentForm.addEventListener("submit", handleAddComment);
+    if (result.success && Array.isArray(result.data)) {
+      result.data.forEach((week) => {
+        const article = createWeekArticle(week);
+        weekListSection.appendChild(article);
+      });
     } else {
-      weekTitle.textContent = "Week not found.";
+      weekListSection.innerHTML = "<p>No weeks found.</p>";
     }
   } catch (error) {
-    console.error("Error initializing page:", error);
-    weekTitle.textContent = "Week not found.";
+    console.error("Error loading weeks:", error);
+    weekListSection.innerHTML = "<p>Failed to load weekly breakdown.</p>";
   }
 }
 
 // --- Initial Page Load ---
 if (typeof module === "undefined") {
-  initializePage();
+  loadWeeks();
 }
 
 // --- Exports (for autograder) ---
 if (typeof module !== "undefined") {
-  module.exports = {
-    getWeekIdFromURL,
-    renderWeekDetails,
-    createCommentArticle,
-    renderComments,
-    handleAddComment,
-    initializePage,
-  };
+  module.exports = { createWeekArticle, loadWeeks };
 }
-loadWeeks();
