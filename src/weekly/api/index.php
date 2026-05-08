@@ -105,6 +105,14 @@ function updateWeek(PDO $db, array $data): void
     if (!$id || !is_numeric($id)) {
         sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
     }
+
+    // Check existence FIRST so unknown IDs always return 404
+    $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
+    $check->execute([(int)$id]);
+    if (!$check->fetch()) {
+        sendResponse(['success' => false, 'message' => 'Week not found'], 404);
+    }
+
     if (empty($title)) {
         sendResponse(['success' => false, 'message' => 'Title is required'], 400);
     }
@@ -115,15 +123,12 @@ function updateWeek(PDO $db, array $data): void
         sendResponse(['success' => false, 'message' => 'Invalid date format. Use YYYY-MM-DD'], 400);
     }
 
-    // Check week exists first
-    $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
-    $check->execute([$id]);
-    if (!$check->fetch()) {
-        sendResponse(['success' => false, 'message' => 'Week not found'], 404);
+    if (!is_array($links)) {
+        $links = [];
     }
 
     $stmt = $db->prepare("UPDATE weeks SET title = ?, start_date = ?, description = ?, links = ? WHERE id = ?");
-    $stmt->execute([$title, $start_date, $description, json_encode($links), $id]);
+    $stmt->execute([$title, $start_date, $description, json_encode($links), (int)$id]);
 
     sendResponse(['success' => true, 'message' => 'Week updated']);
 }
