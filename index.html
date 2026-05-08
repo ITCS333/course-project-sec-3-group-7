@@ -1,1 +1,163 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITCS333 — Course Website</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; }
+
+        /* ── NAV ── */
+        header {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: .9rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 1px 6px rgba(0,0,0,.06);
+        }
+        .logo { font-size: 1.1rem; font-weight: 700; color: #4f46e5; letter-spacing: -.3px; }
+        nav { display: flex; gap: 1.5rem; }
+        nav a { text-decoration: none; color: #64748b; font-size: .9rem; font-weight: 500; transition: color .2s; }
+        nav a:hover { color: #4f46e5; }
+        .nav-login {
+            background: #4f46e5; color: #fff !important; padding: .45rem 1.1rem;
+            border-radius: 8px; transition: background .2s !important;
+        }
+        .nav-login:hover { background: #4338ca !important; }
+
+        /* ── HERO ── */
+        .hero {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #fff;
+            text-align: center;
+            padding: 5rem 1rem 4.5rem;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.3);
+            border-radius: 50px;
+            padding: .3rem 1rem;
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+        }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; line-height: 1.15; margin-bottom: .8rem; }
+        .hero p { font-size: 1.05rem; opacity: .85; max-width: 560px; margin: 0 auto 2.2rem; line-height: 1.6; }
+        .hero-cta {
+            display: inline-block;
+            background: #fff;
+            color: #4f46e5;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: .8rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,.15);
+            transition: transform .2s, box-shadow .2s;
+        }
+        .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.2); }
+
+        /* ── CARDS ── */
+        .cards-section { padding: 3.5rem 1rem; max-width: 1080px; margin: 0 auto; }
+        .cards-section h2 { text-align: center; font-size: 1.5rem; font-weight: 700; margin-bottom: .5rem; color: #1e293b; }
+        .cards-subtitle { text-align: center; color: #64748b; margin-bottom: 2.5rem; font-size: .95rem; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 1.6rem 1.2rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            text-decoration: none;
+            color: inherit;
+            transition: transform .2s, box-shadow .2s, border-color .2s;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 32px rgba(79,70,229,.12); border-color: #c7d2fe; }
+        .card-icon { font-size: 2rem; margin-bottom: .8rem; }
+        .card h3 { font-size: .95rem; font-weight: 600; color: #1e293b; margin-bottom: .3rem; }
+        .card p { font-size: .82rem; color: #64748b; line-height: 1.5; }
+        .card-arrow { font-size: .8rem; color: #4f46e5; font-weight: 600; margin-top: .7rem; display: block; }
+
+        /* ── FOOTER ── */
+        footer {
+            background: #1e293b;
+            color: #94a3b8;
+            text-align: center;
+            padding: 1.4rem;
+            font-size: .83rem;
+        }
+        footer span { color: #c7d2fe; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">📚 ITCS333</div>
+    <nav>
+        <a href="src/resources/list.html">Resources</a>
+        <a href="src/weekly/list.html">Weekly</a>
+        <a href="src/assignments/list.html">Assignments</a>
+        <a href="src/discussion/board.html">Discussion</a>
+        <a href="src/auth/login.html" class="nav-login">Login</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <div class="hero-badge">University of Bahrain · ITCS333</div>
+    <h1>Your Course Hub,<br>All in One Place</h1>
+    <p>Access resources, track weekly content, submit assignments, and join discussions — everything you need for Internet Software Development.</p>
+    <a href="src/auth/login.html" class="hero-cta">Get Started →</a>
+</section>
+
+<section class="cards-section">
+    <h2>Explore the Platform</h2>
+    <p class="cards-subtitle">Everything you need, organized and ready to use.</p>
+    <div class="cards-grid">
+        <a class="card" href="src/resources/list.html">
+            <div class="card-icon">📂</div>
+            <h3>Resources</h3>
+            <p>Course materials, links, and references</p>
+            <span class="card-arrow">Browse →</span>
+        </a>
+        <a class="card" href="src/weekly/list.html">
+            <div class="card-icon">📅</div>
+            <h3>Weekly Breakdown</h3>
+            <p>Week-by-week content and topics</p>
+            <span class="card-arrow">Browse →</span>
+        </a>
+        <a class="card" href="src/assignments/list.html">
+            <div class="card-icon">📝</div>
+            <h3>Assignments</h3>
+            <p>View, submit, and track your work</p>
+            <span class="card-arrow">Browse →</span>
+        </a>
+        <a class="card" href="src/discussion/board.html">
+            <div class="card-icon">💬</div>
+            <h3>Discussion Board</h3>
+            <p>Ask questions and collaborate</p>
+            <span class="card-arrow">Browse →</span>
+        </a>
+        <a class="card" href="src/admin/manage_users.html">
+            <div class="card-icon">🔐</div>
+            <h3>Admin Portal</h3>
+            <p>Manage users and settings</p>
+            <span class="card-arrow">Manage →</span>
+        </a>
+    </div>
+</section>
+
+<footer>
+    &copy; 2025 <span>University of Bahrain</span> — ITCS333 Internet Software Development · Group 7
+</footer>
+
+</body>
+</html>
