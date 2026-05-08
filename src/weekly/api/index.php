@@ -10,14 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once __DIR__ . '/../../../common/db.php';
+require_once __DIR__ . '/../../common/db.php';
 
-$db = getDBConnection();
-
-$method  = $_SERVER['REQUEST_METHOD'];
-$rawData = file_get_contents('php://input');
-$data    = json_decode($rawData, true) ?? [];
-
+$db        = getDBConnection();
+$method    = $_SERVER['REQUEST_METHOD'];
+$rawData   = file_get_contents('php://input');
+$data      = json_decode($rawData, true) ?? [];
 $action    = $_GET['action']     ?? null;
 $id        = $_GET['id']         ?? null;
 $weekId    = $_GET['week_id']    ?? null;
@@ -78,8 +76,14 @@ function createWeek(PDO $db, array $data): void
     $description = trim($data['description'] ?? '');
     $links       = $data['links'] ?? [];
 
-    if (empty($title) || empty($start_date)) {
-        sendResponse(['success' => false, 'message' => 'Missing required fields'], 400);
+    if (empty($title)) {
+        sendResponse(['success' => false, 'message' => 'Title is required'], 400);
+    }
+    if (empty($start_date)) {
+        sendResponse(['success' => false, 'message' => 'Start date is required'], 400);
+    }
+    if (!validateDate($start_date)) {
+        sendResponse(['success' => false, 'message' => 'Invalid date format. Use YYYY-MM-DD'], 400);
     }
 
     $stmt = $db->prepare("INSERT INTO weeks (title, start_date, description, links) VALUES (?, ?, ?, ?)");
@@ -98,20 +102,30 @@ function updateWeek(PDO $db, array $data): void
     $description = trim($data['description'] ?? '');
     $links       = $data['links'] ?? [];
 
-    if (!$id || !is_numeric($id) || empty($title) || empty($start_date)) {
-        sendResponse(['success' => false, 'message' => 'Missing required fields'], 400);
+    if (!$id || !is_numeric($id)) {
+        sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
+    }
+    if (empty($title)) {
+        sendResponse(['success' => false, 'message' => 'Title is required'], 400);
+    }
+    if (empty($start_date)) {
+        sendResponse(['success' => false, 'message' => 'Start date is required'], 400);
+    }
+    if (!validateDate($start_date)) {
+        sendResponse(['success' => false, 'message' => 'Invalid date format. Use YYYY-MM-DD'], 400);
+    }
+
+    // Check week exists first
+    $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
+    $check->execute([$id]);
+    if (!$check->fetch()) {
+        sendResponse(['success' => false, 'message' => 'Week not found'], 404);
     }
 
     $stmt = $db->prepare("UPDATE weeks SET title = ?, start_date = ?, description = ?, links = ? WHERE id = ?");
-    if ($stmt->execute([$title, $start_date, $description, json_encode($links), $id])) {
-        if ($stmt->rowCount() > 0) {
-            sendResponse(['success' => true, 'message' => 'Week updated']);
-        } else {
-            sendResponse(['success' => false, 'message' => 'Week not found'], 404);
-        }
-    } else {
-        sendResponse(['success' => false, 'message' => 'Database error'], 500);
-    }
+    $stmt->execute([$title, $start_date, $description, json_encode($links), $id]);
+
+    sendResponse(['success' => true, 'message' => 'Week updated']);
 }
 
 function deleteWeek(PDO $db, $id): void
@@ -120,14 +134,17 @@ function deleteWeek(PDO $db, $id): void
         sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
     }
 
+    // Check week exists first
+    $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
+    $check->execute([$id]);
+    if (!$check->fetch()) {
+        sendResponse(['success' => false, 'message' => 'Week not found'], 404);
+    }
+
     $stmt = $db->prepare("DELETE FROM weeks WHERE id = ?");
     $stmt->execute([$id]);
 
-    if ($stmt->rowCount() > 0) {
-        sendResponse(['success' => true, 'message' => 'Week deleted']);
-    } else {
-        sendResponse(['success' => false, 'message' => 'Week not found'], 404);
-    }
+    sendResponse(['success' => true, 'message' => 'Week deleted']);
 }
 
 // ============================================================================
@@ -153,19 +170,27 @@ function createComment(PDO $db, array $data): void
     $author = trim($data['author'] ?? '');
     $text   = trim($data['text']   ?? '');
 
-    if (!$weekId || empty($author) || empty($text)) {
+    if (empty($text) || empty($author)) {
         sendResponse(['success' => false, 'message' => 'Missing fields'], 400);
+    }
+
+    if (!$weekId || !is_numeric($weekId)) {
+        sendResponse(['success' => false, 'message' => 'Invalid week_id'], 400);
+    }
+
+    // Check week exists
+    $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
+    $check->execute([$weekId]);
+    if (!$check->fetch()) {
+        sendResponse(['success' => false, 'message' => 'Week not found'], 404);
     }
 
     $stmt = $db->prepare("INSERT INTO comments_week (week_id, author, text) VALUES (?, ?, ?)");
     if ($stmt->execute([$weekId, $author, $text])) {
         $newId = (int)$db->lastInsertId();
-
-        // Fetch the inserted comment so details.js gets the full object in result.data
         $fetch = $db->prepare("SELECT * FROM comments_week WHERE id = ?");
         $fetch->execute([$newId]);
         $comment = $fetch->fetch(PDO::FETCH_ASSOC);
-
         sendResponse(['success' => true, 'message' => 'Comment added', 'id' => $newId, 'data' => $comment], 201);
     } else {
         sendResponse(['success' => false, 'message' => 'Database error'], 500);
@@ -187,11 +212,7 @@ function deleteComment(PDO $db, $commentId): void
     $stmt = $db->prepare("DELETE FROM comments_week WHERE id = ?");
     $stmt->execute([$commentId]);
 
-    if ($stmt->rowCount() > 0) {
-        sendResponse(['success' => true, 'message' => 'Comment deleted']);
-    } else {
-        sendResponse(['success' => false, 'message' => 'Database error'], 500);
-    }
+    sendResponse(['success' => true, 'message' => 'Comment deleted']);
 }
 
 // ============================================================================
@@ -222,13 +243,14 @@ try {
             deleteWeek($db, $id);
         }
     } else {
-        http_response_code(405);
-        echo json_encode(['error' => 'Method Not Allowed']);
+        sendResponse(['success' => false, 'message' => 'Method Not Allowed'], 405);
     }
 } catch (PDOException $e) {
-    sendResponse(['success' => false, 'error' => 'Database error: ' . $e->getMessage()], 500);
+    error_log($e->getMessage());
+    sendResponse(['success' => false, 'message' => 'Database error'], 500);
 } catch (Exception $e) {
-    sendResponse(['success' => false, 'error' => 'Server error: ' . $e->getMessage()], 500);
+    error_log($e->getMessage());
+    sendResponse(['success' => false, 'message' => 'Server error'], 500);
 }
 
 // ============================================================================
@@ -244,11 +266,11 @@ function sendResponse(array $data, int $statusCode = 200): void
 
 function validateDate(string $date): bool
 {
-    return (bool)DateTime::createFromFormat('Y-m-d', $date);
+    $d = DateTime::createFromFormat('Y-m-d', $date);
+    return $d && $d->format('Y-m-d') === $date;
 }
 
 function sanitizeInput(string $data): string
 {
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
-}    // TODO: return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
