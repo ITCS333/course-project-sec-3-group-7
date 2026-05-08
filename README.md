@@ -23,7 +23,7 @@ The website covers five functional areas, each assigned to one team member.
 |------|-------------|------------|-----------------|
 | 1 | Home Page, Authentication & User Management | 202303587 | asmamoh712 |
 | 2 | Course Resources | 202309376 | anoodhamri-edu |
-| 3 | Weekly Breakdown | | |
+| 3 | Weekly Breakdown | 202103116 | danakassab |
 | 4 | Assignments | 202006886 | Alyaa-Ahmed1 |
 | 5 | Discussion Board | | |
 
