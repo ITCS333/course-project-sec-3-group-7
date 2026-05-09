@@ -78,11 +78,13 @@ function createResourceRow(resource) {
  * 3. For each resource, call `createResourceRow()` and
  *    append the returned <tr> to the table body.
  */
-function renderTable() {
+function renderTable(data) {
   const tbody = document.getElementById('resources-tbody');
   tbody.innerHTML = '';
 
-  resources.forEach(resource => {
+  const list = data || resources;
+
+  list.forEach(resource => {
     const tr = createResourceRow(resource);
     tbody.appendChild(tr);
   });
