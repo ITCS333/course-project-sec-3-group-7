@@ -96,22 +96,25 @@ function createWeek(PDO $db, array $data): void
 
 function updateWeek(PDO $db, array $data): void
 {
-    $id          = $data['id']          ?? null;
-    $title       = trim($data['title']       ?? '');
-    $start_date  = trim($data['start_date']  ?? '');
-    $description = trim($data['description'] ?? '');
-    $links       = $data['links'] ?? [];
+    $id = $data['id'] ?? null;
 
     if (!$id || !is_numeric($id)) {
         sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
     }
 
-    // Check existence FIRST so unknown IDs always return 404
-    $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
+    // Check existence FIRST and fetch existing values
+    $check = $db->prepare("SELECT * FROM weeks WHERE id = ?");
     $check->execute([(int)$id]);
-    if (!$check->fetch()) {
+    $existing = $check->fetch(PDO::FETCH_ASSOC);
+    if (!$existing) {
         sendResponse(['success' => false, 'message' => 'Week not found'], 404);
     }
+
+    // Fall back to existing values if not provided in the request
+    $title       = isset($data['title'])       ? trim($data['title'])       : $existing['title'];
+    $start_date  = isset($data['start_date'])  ? trim($data['start_date'])  : $existing['start_date'];
+    $description = isset($data['description']) ? trim($data['description']) : $existing['description'];
+    $links       = isset($data['links'])       ? $data['links']             : json_decode($existing['links'], true) ?? [];
 
     if (empty($title)) {
         sendResponse(['success' => false, 'message' => 'Title is required'], 400);
@@ -122,7 +125,6 @@ function updateWeek(PDO $db, array $data): void
     if (!validateDate($start_date)) {
         sendResponse(['success' => false, 'message' => 'Invalid date format. Use YYYY-MM-DD'], 400);
     }
-
     if (!is_array($links)) {
         $links = [];
     }
@@ -139,7 +141,6 @@ function deleteWeek(PDO $db, $id): void
         sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
     }
 
-    // Check week exists first
     $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
     $check->execute([$id]);
     if (!$check->fetch()) {
@@ -183,7 +184,6 @@ function createComment(PDO $db, array $data): void
         sendResponse(['success' => false, 'message' => 'Invalid week_id'], 400);
     }
 
-    // Check week exists
     $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
     $check->execute([$weekId]);
     if (!$check->fetch()) {
