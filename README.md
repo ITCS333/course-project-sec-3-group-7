@@ -13,7 +13,7 @@ The website covers five functional areas, each assigned to one team member.
 
 ## Live Demo
 
-> **Replit Deployment:** Update this link with your Replit deployment URL once the project is live.
+> **Replit Deployment:** https://dana.infinityfree.me/course-project-sec-3-group-7-main/?i=1
 
 ---
 
