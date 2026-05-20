@@ -91,9 +91,9 @@ function getWeekById(PDO $db, $id): void
 
 function createWeek(PDO $db, array $data): void
 {
-    $title       = isset($data['title']) ? trim($data['title']) : '';
-    $start_date  = isset($data['start_date']) ? trim($data['start_date']) : '';
-    $description = isset($data['description']) ? trim($data['description']) : '';
+    $title       = isset($data['title']) ? sanitizeInput($data['title']) : '';
+    $start_date  = isset($data['start_date']) ? sanitizeInput($data['start_date']) : '';
+    $description = isset($data['description']) ? sanitizeInput($data['description']) : '';
     $links       = $data['links'] ?? [];
 
     if (empty($title)) {
@@ -122,7 +122,6 @@ function updateWeek(PDO $db, array $data, $urlId = null): void
         sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
     }
 
-    // Fetch the existing record first to enable partial patching/updates
     $check = $db->prepare("SELECT * FROM weeks WHERE id = ?");
     $check->execute([(int)$id]);
     $existingWeek = $check->fetch(PDO::FETCH_ASSOC);
@@ -131,10 +130,10 @@ function updateWeek(PDO $db, array $data, $urlId = null): void
         sendResponse(['success' => false, 'message' => 'Week not found'], 404);
     }
 
-    // Fall back to existing database values if the fields aren't provided in the request payload
-    $title       = isset($data['title']) ? trim($data['title']) : $existingWeek['title'];
-    $start_date  = isset($data['start_date']) ? trim($data['start_date']) : $existingWeek['start_date'];
-    $description = isset($data['description']) ? trim($data['description']) : $existingWeek['description'];
+    // Apply sanitization rules directly upon update fields
+    $title       = isset($data['title']) ? sanitizeInput($data['title']) : $existingWeek['title'];
+    $start_date  = isset($data['start_date']) ? sanitizeInput($data['start_date']) : $existingWeek['start_date'];
+    $description = isset($data['description']) ? sanitizeInput($data['description']) : $existingWeek['description'];
     
     if (isset($data['links'])) {
         $links = is_array($data['links']) ? $data['links'] : [];
@@ -142,7 +141,6 @@ function updateWeek(PDO $db, array $data, $urlId = null): void
         $links = json_decode($existingWeek['links'], true) ?? [];
     }
 
-    // Validation checks for updated properties
     if (empty($title)) {
         sendResponse(['success' => false, 'message' => 'Title is required'], 400);
     }
@@ -197,8 +195,8 @@ function getCommentsByWeek(PDO $db, $weekId): void
 function createComment(PDO $db, array $data): void
 {
     $weekId = $data['week_id'] ?? null;
-    $author = trim($data['author'] ?? '');
-    $text   = trim($data['text']   ?? '');
+    $author = isset($data['author']) ? sanitizeInput($data['author']) : '';
+    $text   = isset($data['text']) ? sanitizeInput($data['text']) : '';
 
     if (empty($text) || empty($author)) {
         sendResponse(['success' => false, 'message' => 'Missing fields'], 400);
