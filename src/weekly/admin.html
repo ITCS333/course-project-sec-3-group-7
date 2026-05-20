@@ -4,25 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manage Weekly Breakdown</title>
-    <link rel="stylesheet" href="../../assets/css/style.css" />
+    <link rel="stylesheet" href="../common/styles.css" />
     <script src="admin.js" defer></script>
 </head>
 <body>
- 
+
     <header>
         <h1>Manage Weekly Breakdown</h1>
     </header>
- 
+
     <main>
- 
+
         <!-- Section 1: Add / Edit Week Form -->
         <section>
             <h2>Add a New Week</h2>
- 
+
             <form id="week-form" action="#">
                 <fieldset>
                     <legend>Weekly Details</legend>
- 
+
                     <label for="week-title">Week Title</label>
                     <input
                         id="week-title"
@@ -30,35 +30,35 @@
                         required
                         placeholder="Week 1: Introduction to HTML"
                     />
- 
+
                     <label for="week-start-date">Start Date</label>
                     <input
                         id="week-start-date"
                         type="date"
                         required
                     />
- 
+
                     <label for="week-description">Description</label>
                     <textarea
                         id="week-description"
                         rows="5"
                     ></textarea>
- 
+
                     <label for="week-links">Resource Links (one URL per line)</label>
                     <textarea
                         id="week-links"
                         rows="3"
                     ></textarea>
- 
+
                     <button id="add-week" type="submit">Add Week</button>
                 </fieldset>
             </form>
         </section>
- 
+
         <!-- Section 2: Existing Weekly Entries -->
         <section>
             <h2>Current Weekly Breakdown</h2>
- 
+
             <table id="weeks-table">
                 <thead>
                     <tr>
@@ -73,9 +73,9 @@
                 </tbody>
             </table>
         </section>
- 
+
     </main>
- 
+
 </body>
 </html>
- 
+
