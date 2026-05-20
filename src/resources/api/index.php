@@ -186,7 +186,18 @@ function createComment($db, $data) {
     $stmt = $db->prepare('INSERT INTO comments_resource (resource_id, author, text) VALUES (?, ?, ?)');
     $stmt->execute([$data['resource_id'], $author, $text]);
     if ($stmt->rowCount() > 0) {
-        sendResponse(['success' => true, 'message' => 'Comment created successfully.', 'id' => $db->lastInsertId()], 201);
+        $newId = $db->lastInsertId();
+        sendResponse([
+            'success' => true,
+            'message' => 'Comment created successfully.',
+            'id'      => $newId,
+            'data'    => [
+                'id'          => $newId,
+                'resource_id' => $data['resource_id'],
+                'author'      => $author,
+                'text'        => $text
+            ]
+        ], 201);
     } else {
         sendResponse(['success' => false, 'message' => 'Failed to create comment.'], 500);
     }
