@@ -91,9 +91,9 @@ function getWeekById(PDO $db, $id): void
 
 function createWeek(PDO $db, array $data): void
 {
-    $title       = trim($data['title']       ?? '');
-    $start_date  = trim($data['start_date']  ?? '');
-    $description = trim($data['description'] ?? '');
+    $title       = isset($data['title']) ? trim($data['title']) : '';
+    $start_date  = isset($data['start_date']) ? trim($data['start_date']) : '';
+    $description = isset($data['description']) ? trim($data['description']) : '';
     $links       = $data['links'] ?? [];
 
     if (empty($title)) {
@@ -116,22 +116,33 @@ function createWeek(PDO $db, array $data): void
 
 function updateWeek(PDO $db, array $data, $urlId = null): void
 {
-    $id          = $data['id'] ?? $urlId ?? null;
-    $title       = trim($data['title']       ?? '');
-    $start_date  = trim($data['start_date']  ?? '');
-    $description = trim($data['description'] ?? '');
-    $links       = $data['links'] ?? [];
+    $id = $data['id'] ?? $urlId ?? null;
 
     if (!$id || !is_numeric($id)) {
         sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
     }
 
-    $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
+    // Fetch the existing record first to enable partial patching/updates
+    $check = $db->prepare("SELECT * FROM weeks WHERE id = ?");
     $check->execute([(int)$id]);
-    if (!$check->fetch()) {
+    $existingWeek = $check->fetch(PDO::FETCH_ASSOC);
+
+    if (!$existingWeek) {
         sendResponse(['success' => false, 'message' => 'Week not found'], 404);
     }
 
+    // Fall back to existing database values if the fields aren't provided in the request payload
+    $title       = isset($data['title']) ? trim($data['title']) : $existingWeek['title'];
+    $start_date  = isset($data['start_date']) ? trim($data['start_date']) : $existingWeek['start_date'];
+    $description = isset($data['description']) ? trim($data['description']) : $existingWeek['description'];
+    
+    if (isset($data['links'])) {
+        $links = is_array($data['links']) ? $data['links'] : [];
+    } else {
+        $links = json_decode($existingWeek['links'], true) ?? [];
+    }
+
+    // Validation checks for updated properties
     if (empty($title)) {
         sendResponse(['success' => false, 'message' => 'Title is required'], 400);
     }
@@ -140,10 +151,6 @@ function updateWeek(PDO $db, array $data, $urlId = null): void
     }
     if (!validateDate($start_date)) {
         sendResponse(['success' => false, 'message' => 'Invalid date format. Use YYYY-MM-DD'], 400);
-    }
-
-    if (!is_array($links)) {
-        $links = [];
     }
 
     $stmt = $db->prepare("UPDATE weeks SET title = ?, start_date = ?, description = ?, links = ? WHERE id = ?");
