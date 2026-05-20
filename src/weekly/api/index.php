@@ -10,9 +10,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once __DIR__ . '/../../common/db.php';
+// Dynamic include path fallback to handle local vs GitHub Action runner paths
+if (file_exists(__DIR__ . '/../../common/db.php')) {
+    require_once __DIR__ . '/../../common/db.php';
+} elseif (file_exists(__DIR__ . '/../common/db.php')) {
+    require_once __DIR__ . '/../common/db.php';
+} else {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Critical Error: db.php file could not be located.']);
+    exit;
+}
 
-$db        = getDBConnection();
+// Safely establish connection
+try {
+    if (!function_exists('getDBConnection')) {
+        throw new Exception("Function getDBConnection() is undefined. Check your db.php file layout.");
+    }
+    $db = getDBConnection();
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    exit;
+}
+
 $method    = $_SERVER['REQUEST_METHOD'];
 $rawData   = file_get_contents('php://input');
 $data      = json_decode($rawData, true) ?? [];
@@ -96,7 +116,6 @@ function createWeek(PDO $db, array $data): void
 
 function updateWeek(PDO $db, array $data, $urlId = null): void
 {
-    // Capture ID regardless of whether it's via JSON payload or URL parameter
     $id          = $data['id'] ?? $urlId ?? null;
     $title       = trim($data['title']       ?? '');
     $start_date  = trim($data['start_date']  ?? '');
@@ -107,7 +126,6 @@ function updateWeek(PDO $db, array $data, $urlId = null): void
         sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
     }
 
-    // Check existence FIRST so unknown IDs always return 404
     $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
     $check->execute([(int)$id]);
     if (!$check->fetch()) {
@@ -140,7 +158,6 @@ function deleteWeek(PDO $db, $id): void
         sendResponse(['success' => false, 'message' => 'Invalid ID'], 400);
     }
 
-    // Check week exists first
     $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
     $check->execute([$id]);
     if (!$check->fetch()) {
@@ -184,7 +201,6 @@ function createComment(PDO $db, array $data): void
         sendResponse(['success' => false, 'message' => 'Invalid week_id'], 400);
     }
 
-    // Check week exists
     $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
     $check->execute([$weekId]);
     if (!$check->fetch()) {
@@ -241,7 +257,6 @@ try {
             createWeek($db, $data);
         }
     } elseif ($method === 'PUT') {
-        // Pass the global URL parameter $id down as an explicit fallback argument
         updateWeek($db, $data, $id);
     } elseif ($method === 'DELETE') {
         if ($action === 'delete_comment') {
@@ -267,4 +282,17 @@ try {
 function sendResponse(array $data, int $statusCode = 200): void
 {
     http_response_code($statusCode);
-    echo json_encode($data, JSON_PRETTY_
+    echo json_encode($data, JSON_PRETTY_PRINT);
+    exit;
+}
+
+function validateDate(string $date): bool
+{
+    $d = DateTime::createFromFormat('Y-m-d', $date);
+    return $d && $d->format('Y-m-d') === $date;
+}
+
+function sanitizeInput(string $data): string
+{
+    return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
+}
