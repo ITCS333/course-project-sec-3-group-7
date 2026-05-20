@@ -94,9 +94,10 @@ function createWeek(PDO $db, array $data): void
     }
 }
 
-function updateWeek(PDO $db, array $data): void
+function updateWeek(PDO $db, array $data, $urlId = null): void
 {
-    $id          = $data['id']          ?? null;
+    // Check the payload body first; fall back to the URL parameter if missing
+    $id          = $data['id'] ?? $urlId ?? null;
     $title       = trim($data['title']       ?? '');
     $start_date  = trim($data['start_date']  ?? '');
     $description = trim($data['description'] ?? '');
@@ -240,7 +241,8 @@ try {
             createWeek($db, $data);
         }
     } elseif ($method === 'PUT') {
-        updateWeek($db, $data);
+        // Pass the global URL $id parameter as a fallback
+        updateWeek($db, $data, $id);
     } elseif ($method === 'DELETE') {
         if ($action === 'delete_comment') {
             deleteComment($db, $commentId);
