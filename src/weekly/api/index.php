@@ -279,4 +279,3 @@ function sanitizeInput(string $data): string
 {
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
-
