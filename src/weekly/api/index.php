@@ -96,7 +96,7 @@ function createWeek(PDO $db, array $data): void
 
 function updateWeek(PDO $db, array $data, $urlId = null): void
 {
-    // Check the payload body first; fall back to the URL parameter if missing
+    // Capture ID regardless of whether it's via JSON payload or URL parameter
     $id          = $data['id'] ?? $urlId ?? null;
     $title       = trim($data['title']       ?? '');
     $start_date  = trim($data['start_date']  ?? '');
@@ -241,7 +241,7 @@ try {
             createWeek($db, $data);
         }
     } elseif ($method === 'PUT') {
-        // Pass the global URL $id parameter as a fallback
+        // Pass the global URL parameter $id down as an explicit fallback argument
         updateWeek($db, $data, $id);
     } elseif ($method === 'DELETE') {
         if ($action === 'delete_comment') {
@@ -267,17 +267,4 @@ try {
 function sendResponse(array $data, int $statusCode = 200): void
 {
     http_response_code($statusCode);
-    echo json_encode($data, JSON_PRETTY_PRINT);
-    exit;
-}
-
-function validateDate(string $date): bool
-{
-    $d = DateTime::createFromFormat('Y-m-d', $date);
-    return $d && $d->format('Y-m-d') === $date;
-}
-
-function sanitizeInput(string $data): string
-{
-    return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
-}
+    echo json_encode($data, JSON_PRETTY_
