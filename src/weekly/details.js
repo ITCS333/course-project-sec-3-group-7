@@ -133,4 +133,3 @@ if (typeof module !== "undefined") {
     initializePage,
   };
 }
-initializePage();
