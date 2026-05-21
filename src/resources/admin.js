@@ -189,7 +189,6 @@ function handleTableClick(event) {
     const submitBtn = document.getElementById('add-resource');
     submitBtn.textContent = 'Update Resource';
  
-    // ✅ التعديل: نشيل الـ listener القديم أول حتى ما يصير double submit
     resourceForm.removeEventListener('submit', handleAddResource);
  
     resourceForm.onsubmit = function(event) {
@@ -213,7 +212,6 @@ function handleTableClick(event) {
           resourceForm.reset();
           submitBtn.textContent = 'Add Resource';
  
-          // ✅ التعديل: نرجع الـ listener الأصلي بعد ما ننهي التعديل
           resourceForm.onsubmit = null;
           resourceForm.addEventListener('submit', handleAddResource);
         }
