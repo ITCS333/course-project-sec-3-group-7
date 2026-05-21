@@ -1,6 +1,6 @@
 /*
   Requirement: Make the "Manage Resources" page interactive.
-
+ 
   Instructions:
   1. Link this file to `admin.html` using:
      <script src="admin.js" defer></script>
@@ -10,20 +10,20 @@
   
   3. Implement the TODOs below.
 */
-
+ 
 // --- Global Data Store ---
 // This will hold the resources loaded from the API.
 let resources = [];
-
+ 
 // --- Element Selections ---
 // TODO: Select the resource form ('#resource-form').
 const resourceForm = document.getElementById('resource-form');
-
+ 
 // TODO: Select the resources table body ('#resources-tbody').
 const resourcesTbody = document.getElementById('resources-tbody');
-
+ 
 // --- Functions ---
-
+ 
 /**
  * TODO: Implement the createResourceRow function.
  * It takes one resource object { id, title, description, link }.
@@ -37,39 +37,39 @@ const resourcesTbody = document.getElementById('resources-tbody');
  */
 function createResourceRow(resource) {
   const tr = document.createElement('tr');
-
+ 
   const tdTitle = document.createElement('td');
   tdTitle.textContent = resource.title;
-
+ 
   const tdDescription = document.createElement('td');
   tdDescription.textContent = resource.description;
-
+ 
   const tdLink = document.createElement('td');
   tdLink.textContent = resource.link;
-
+ 
   const tdActions = document.createElement('td');
-
+ 
   const editBtn = document.createElement('button');
   editBtn.textContent = 'Edit';
   editBtn.className = 'edit-btn';
   editBtn.dataset.id = resource.id;
-
+ 
   const deleteBtn = document.createElement('button');
   deleteBtn.textContent = 'Delete';
   deleteBtn.className = 'delete-btn';
   deleteBtn.dataset.id = resource.id;
-
+ 
   tdActions.appendChild(editBtn);
   tdActions.appendChild(deleteBtn);
-
+ 
   tr.appendChild(tdTitle);
   tr.appendChild(tdDescription);
   tr.appendChild(tdLink);
   tr.appendChild(tdActions);
-
+ 
   return tr;
 }
-
+ 
 /**
  * TODO: Implement the renderTable function.
  * It should:
@@ -81,15 +81,15 @@ function createResourceRow(resource) {
 function renderTable(data) {
   const tbody = document.getElementById('resources-tbody');
   tbody.innerHTML = '';
-
+ 
   const list = data || resources;
-
+ 
   list.forEach(resource => {
     const tr = createResourceRow(resource);
     tbody.appendChild(tr);
   });
 }
-
+ 
 /**
  * TODO: Implement the handleAddResource function.
  * This is the event handler for the form's 'submit' event.
@@ -111,11 +111,11 @@ function renderTable(data) {
  */
 function handleAddResource(event) {
   event.preventDefault();
-
+ 
   const title = document.getElementById('resource-title').value;
   const description = document.getElementById('resource-description').value;
   const link = document.getElementById('resource-link').value;
-
+ 
   fetch('./api/index.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -130,7 +130,7 @@ function handleAddResource(event) {
     }
   });
 }
-
+ 
 /**
  * TODO: Implement the handleTableClick function.
  * This handles click events on the table body using event delegation.
@@ -165,7 +165,7 @@ function handleAddResource(event) {
 function handleTableClick(event) {
   const target = event.target;
   const id = target.dataset.id;
-
+ 
   if (target.classList.contains('delete-btn')) {
     fetch(`./api/index.php?id=${id}`, {
       method: 'DELETE'
@@ -178,24 +178,27 @@ function handleTableClick(event) {
       }
     });
   }
-
+ 
   if (target.classList.contains('edit-btn')) {
     const resource = resources.find(r => r.id == id);
-
+ 
     document.getElementById('resource-title').value = resource.title;
     document.getElementById('resource-description').value = resource.description;
     document.getElementById('resource-link').value = resource.link;
-
+ 
     const submitBtn = document.getElementById('add-resource');
     submitBtn.textContent = 'Update Resource';
-
+ 
+    // ✅ التعديل: نشيل الـ listener القديم أول حتى ما يصير double submit
+    resourceForm.removeEventListener('submit', handleAddResource);
+ 
     resourceForm.onsubmit = function(event) {
       event.preventDefault();
-
+ 
       const title = document.getElementById('resource-title').value;
       const description = document.getElementById('resource-description').value;
       const link = document.getElementById('resource-link').value;
-
+ 
       fetch('./api/index.php', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -209,6 +212,8 @@ function handleTableClick(event) {
           renderTable();
           resourceForm.reset();
           submitBtn.textContent = 'Add Resource';
+ 
+          // ✅ التعديل: نرجع الـ listener الأصلي بعد ما ننهي التعديل
           resourceForm.onsubmit = null;
           resourceForm.addEventListener('submit', handleAddResource);
         }
@@ -216,7 +221,7 @@ function handleTableClick(event) {
     };
   }
 }
-
+ 
 /**
  * TODO: Implement the loadAndInitialize function.
  * This function must be 'async'.
@@ -234,14 +239,14 @@ function handleTableClick(event) {
 async function loadAndInitialize() {
   const response = await fetch('./api/index.php');
   const result = await response.json();
-
+ 
   resources = result.data;
   renderTable();
-
+ 
   resourceForm.addEventListener('submit', handleAddResource);
   resourcesTbody.addEventListener('click', handleTableClick);
 }
-
+ 
 // --- Initial Page Load ---
 // Call the main async function to start the application.
 loadAndInitialize();
